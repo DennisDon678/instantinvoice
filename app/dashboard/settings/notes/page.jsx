@@ -1,11 +1,57 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ArrowLeft, FileText } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { getSetting, saveSetting } from "@/lib/db";
 
 export default function DefaultNotes() {
-    const [notes, setNotes] = useState("Thank you for your business!");
+    const router = useRouter();
+    const [notes, setNotes] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        loadNotes();
+    }, []);
+
+    const loadNotes = async () => {
+        try {
+            const savedNotes = await getSetting('defaultNotes');
+            setNotes(savedNotes || "Thank you for your business!");
+        } catch (error) {
+            console.error("Error loading notes:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSave = async () => {
+        try {
+            setSaving(true);
+            await saveSetting('defaultNotes', notes);
+
+            // Navigate back after short delay
+            setTimeout(() => {
+                router.push("/dashboard/settings");
+            }, 300);
+        } catch (error) {
+            console.error("Error saving notes:", error);
+            alert("Failed to save notes. Please try again.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col h-full w-full bg-[#f8f8f5] items-center justify-center">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-500">Loading...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-full w-full bg-[#f8f8f5] overflow-hidden">
@@ -15,8 +61,12 @@ export default function DefaultNotes() {
                     <ArrowLeft className="w-5 h-5 text-gray-900" />
                 </Link>
                 <h1 className="text-lg font-bold text-gray-900">Default Notes</h1>
-                <button className="px-5 py-2 bg-primary rounded-full font-bold text-sm text-black hover:bg-[#ffe033] transition-colors">
-                    Save
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="px-5 py-2 bg-primary rounded-full font-bold text-sm text-black hover:bg-[#ffe033] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {saving ? 'Saving...' : 'Save'}
                 </button>
             </div>
 
@@ -81,6 +131,14 @@ export default function DefaultNotes() {
                             >
                                 <p className="text-sm font-medium text-gray-900 mb-1">Friendly Closing</p>
                                 <p className="text-xs text-gray-500">We appreciate your business! For any questions...</p>
+                            </button>
+
+                            <button
+                                onClick={() => setNotes("Payment terms: Net 15 days. Please include invoice number with payment. Thank you!")}
+                                className="w-full text-left p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                            >
+                                <p className="text-sm font-medium text-gray-900 mb-1">Net 15 Terms</p>
+                                <p className="text-xs text-gray-500">Payment terms: Net 15 days...</p>
                             </button>
                         </div>
                     </div>

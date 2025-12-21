@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     ArrowLeft,
     Building2,
@@ -13,15 +13,46 @@ import {
     Pencil
 } from "lucide-react";
 import Link from "next/link";
+import { getBusinessDetails, getSetting } from "@/lib/db";
 
 export default function Settings() {
     const [darkMode, setDarkMode] = useState(false);
+    const [businessDetails, setBusinessDetails] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [currency, setCurrency] = useState('NGN');
 
-    const businessInfo = {
-        name: "Acme Corp",
-        type: "Freelance Design",
-        avatar: "AC"
+    useEffect(() => {
+        loadBusinessData();
+    }, []);
+
+    const loadBusinessData = async () => {
+        try {
+            const business = await getBusinessDetails();
+            setBusinessDetails(business);
+
+            // Load currency setting
+            const savedCurrency = await getSetting('currency');
+            setCurrency(savedCurrency || 'NGN'); // Default to Naira
+        } catch (error) {
+            console.error("Error loading business data:", error);
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const getInitials = (name) => {
+        if (!name) return "AC";
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    };
+
+    if (loading) {
+        return (
+            <div className="flex flex-col h-full w-full bg-[#f8f8f5] items-center justify-center">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-500">Loading...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col h-full w-full bg-[#f8f8f5] overflow-hidden">
@@ -42,19 +73,31 @@ export default function Settings() {
                     <div className="bg-white rounded-3xl p-6 shadow-sm">
                         <div className="flex items-center gap-4">
                             <div className="relative">
-                                <div className="w-20 h-20 bg-gradient-to-br from-orange-300 to-orange-400 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md">
-                                    {businessInfo.avatar}
-                                </div>
-                                <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-md hover:bg-[#ffe033] transition-colors">
-                                    <Pencil className="w-4 h-4 text-black" />
-                                </button>
+                                {businessDetails?.logo ? (
+                                    <div className="w-20 h-20 rounded-full overflow-hidden shadow-md bg-white border-2 border-gray-100">
+                                        <img
+                                            src={businessDetails.logo}
+                                            alt="Business Logo"
+                                            className="w-full h-full object-contain"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="w-20 h-20 bg-gradient-to-br from-orange-300 to-orange-400 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-md">
+                                        {getInitials(businessDetails?.name)}
+                                    </div>
+                                )}
+                                <Link href="/dashboard/settings/logo">
+                                    <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center shadow-md hover:bg-[#ffe033] transition-colors">
+                                        <Pencil className="w-4 h-4 text-black" />
+                                    </button>
+                                </Link>
                             </div>
                             <div className="flex-1">
                                 <h2 className="text-xl font-bold text-gray-900 mb-1">
-                                    {businessInfo.name}
+                                    {businessDetails?.name || "Your Business"}
                                 </h2>
                                 <p className="text-sm text-gray-500">
-                                    {businessInfo.type}
+                                    {businessDetails?.email || "Add business details"}
                                 </p>
                             </div>
                         </div>
@@ -103,7 +146,7 @@ export default function Settings() {
                                     <DollarSign className="w-6 h-6 text-gray-900" />
                                 </div>
                                 <span className="flex-1 font-semibold text-gray-900">Currency</span>
-                                <span className="text-sm text-gray-400 font-medium">USD</span>
+                                <span className="text-sm text-gray-400 font-medium">{currency}</span>
                                 <ChevronRight className="w-5 h-5 text-gray-400" />
                             </Link>
 
@@ -130,12 +173,12 @@ export default function Settings() {
                                 <span className="flex-1 font-semibold text-gray-900">Dark Mode</span>
                                 <button
                                     onClick={() => setDarkMode(!darkMode)}
-                                    className={`relative w-14 h-8 rounded-full transition-colors ${darkMode ? 'bg-primary' : 'bg-gray-200'
-                                        }`}
+                                    className={`relative w - 14 h - 8 rounded - full transition - colors ${darkMode ? 'bg-primary' : 'bg-gray-200'
+                                        } `}
                                 >
                                     <div
-                                        className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform ${darkMode ? 'translate-x-7' : 'translate-x-1'
-                                            }`}
+                                        className={`absolute top - 1 w - 6 h - 6 bg - white rounded - full shadow - md transition - transform ${darkMode ? 'translate-x-7' : 'translate-x-1'
+                                            } `}
                                     />
                                 </button>
                             </div>

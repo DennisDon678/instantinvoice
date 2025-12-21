@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
     ArrowLeft,
     Camera,
@@ -11,13 +11,36 @@ import {
     Phone
 } from "lucide-react";
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { saveBusinessDetails } from "@/lib/db";
 
 function Onboarding() {
+    const router = useRouter();
+    const [formData, setFormData] = useState({
+        name: "",
+        address: "",
+        email: "",
+        phone: "",
+        logo: null
+    });
+    const [isSaving, setIsSaving] = useState(false);
 
-    const handleSave = () => {
-        redirect("/dashboard")
-    }
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSave = async () => {
+        try {
+            setIsSaving(true);
+            await saveBusinessDetails(formData);
+            router.push("/dashboard");
+        } catch (error) {
+            console.error("Error saving business details:", error);
+            alert("Failed to save business details. Please try again.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
     return (
         <div className="flex flex-col h-full w-full bg-[#f8f8f5] overflow-y-auto">
             {/* Header */}
@@ -62,6 +85,8 @@ function Onboarding() {
                             <input
                                 type="text"
                                 placeholder="e.g. Acme Design Studio"
+                                value={formData.name}
+                                onChange={(e) => handleInputChange('name', e.target.value)}
                                 className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium shadow-sm"
                             />
                         </div>
@@ -79,6 +104,8 @@ function Onboarding() {
                             <input
                                 type="text"
                                 placeholder="Street, City, Zip Code"
+                                value={formData.address}
+                                onChange={(e) => handleInputChange('address', e.target.value)}
                                 className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium shadow-sm"
                             />
                         </div>
@@ -96,6 +123,8 @@ function Onboarding() {
                             <input
                                 type="email"
                                 placeholder="contact@business.com"
+                                value={formData.email}
+                                onChange={(e) => handleInputChange('email', e.target.value)}
                                 className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium shadow-sm"
                             />
                         </div>
@@ -113,6 +142,8 @@ function Onboarding() {
                             <input
                                 type="tel"
                                 placeholder="+1 (555) 000-0000"
+                                value={formData.phone}
+                                onChange={(e) => handleInputChange('phone', e.target.value)}
                                 className="w-full bg-white rounded-2xl py-4 pl-12 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-medium shadow-sm"
                             />
                         </div>
@@ -121,8 +152,12 @@ function Onboarding() {
 
                 {/* Footer */}
                 <div className="mt-10 mb-4">
-                    <button className="w-full bg-primary hover:bg-[#ffe033] text-black font-bold py-4 rounded-xl shadow-lg shadow-orange-100 transition-colors text-lg" onClick={handleSave}>
-                        Continue
+                    <button
+                        className="w-full bg-primary hover:bg-[#ffe033] text-black font-bold py-4 rounded-xl shadow-lg shadow-orange-100 transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        onClick={handleSave}
+                        disabled={isSaving || !formData.name || !formData.email}
+                    >
+                        {isSaving ? 'Saving...' : 'Continue'}
                     </button>
 
                     {/* Pagination */}

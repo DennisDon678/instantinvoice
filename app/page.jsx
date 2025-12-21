@@ -1,8 +1,47 @@
-"use client"
+"use client";
+
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { getBusinessDetails } from "@/lib/db";
 
 export default function Home() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      try {
+        const businessDetails = await getBusinessDetails();
+
+        // If business details exist, user has completed onboarding
+        if (businessDetails && businessDetails.name) {
+          router.push("/dashboard");
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Error checking onboarding status:", error);
+        setLoading(false);
+      }
+    };
+    checkOnboardingStatus();
+  }, [router]);
+
+
+
+  const handleGetStarted = () => {
+    router.push("/onboarding");
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full bg-white items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full bg-white text-black font-sans relative overflow-hidden">
 
@@ -33,15 +72,11 @@ export default function Home() {
       <div className="w-full px-6 pb-10 flex flex-col gap-4 mt-auto">
         {/* SingleButton */}
         <button className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary hover:bg-[#11dcdc] active:scale-[0.98] transition-all text-[#0d1b1b] text-base font-bold leading-normal tracking-[0.015em] shadow-[0_4px_14px_rgba(19,236,236,0.4)]"
-          onClick={() => { redirect("/onboarding") }}
+          onClick={handleGetStarted}
         >
           <span className="truncate">Get Started</span>
           <ArrowRight className="ml-2 w-5 h-5" />
         </button>
-        {/* MetaText */}
-        {/* <p className="text-[#4c9a9a] dark:text-primary/70 text-sm font-medium leading-normal text-center cursor-pointer hover:text-primary transition-colors">
-          Already have an account? <span className="underline decoration-2 underline-offset-4">Log in</span>
-        </p> */}
       </div>
     </div>
 

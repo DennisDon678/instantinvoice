@@ -58,19 +58,6 @@ function Onboarding() {
                     Tell us a bit about your business to personalize your invoices.
                 </p>
 
-                {/* Logo Upload */}
-                <div className="flex flex-col items-center mb-8">
-                    <div className="relative">
-                        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm mb-3">
-                            <Camera className="w-8 h-8 text-gray-300" />
-                        </div>
-                        <button className="absolute bottom-3 right-0 bg-[#11dcdc] p-1.5 rounded-full text-white hover:bg-[#0fbdbd] transition-colors shadow-sm">
-                            <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                    </div>
-                    <span className="text-gray-500 text-xs font-medium">Upload Logo</span>
-                </div>
-
                 {/* Form Fields */}
                 <div className="space-y-5">
                     {/* Business Name */}

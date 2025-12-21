@@ -9,7 +9,8 @@ import {
     CheckCircle2,
     XCircle,
     DollarSign,
-    TrendingUp
+    TrendingUp,
+    Settings
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -176,7 +177,7 @@ export default function Dashboard() {
                 </div>
                 <Link href="/dashboard/settings">
                     <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center text-orange-700 font-bold text-sm shadow-sm">
-                        {businessDetails?.name ? getInitials(businessDetails.name) : "JD"}
+                        <Settings />
                     </div>
                 </Link>
             </div>

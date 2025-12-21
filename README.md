@@ -216,4 +216,4 @@ Built with ❤️ using Next.js and Tailwind CSS
 
 ---
 
-**InstantInvoice v1.0.2** © 2024 OpenInvoice Inc.
+**InstantInvoice v1.0.2** © 2024 InstantCodes.

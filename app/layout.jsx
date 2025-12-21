@@ -40,22 +40,15 @@ export const metadata = {
   },
 };
 
-export default function RootLayout({ children }) {
-  // Service Worker Registration
-  if (typeof window !== "undefined" && "serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("/sw.js")
-        .then((reg) => console.log("SW registered:", reg))
-        .catch((err) => console.log("SW error:", err));
-    });
-  }
+import PWARegistration from "@/components/PWARegistration";
 
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 flex justify-center h-dvh w-full overflow-hidden`}
       >
+        <PWARegistration />
         <div className="w-full max-w-3xl bg-white h-full shadow-2xl relative overflow-hidden">
           {children}
         </div>

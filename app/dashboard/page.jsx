@@ -165,7 +165,7 @@ export default function Dashboard() {
     return (
         <div className="flex flex-col h-full w-full bg-[#f8f8f5] overflow-hidden">
             {/* Header */}
-            <div className="flex justify-between items-center px-6 pt-6 pb-4 flex-shrink-0">
+            <div className="flex justify-between items-center px-6 py-6 border-b border-gray-100 shrink-0">
                 <div className="flex items-center gap-2">
                     <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
                         <FileText className="w-6 h-6 text-black" strokeWidth={2.5} />

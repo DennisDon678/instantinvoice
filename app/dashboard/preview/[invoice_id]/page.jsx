@@ -1,33 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
     ArrowLeft,
     Download,
     Share2,
     Printer,
     CheckCircle2,
-    Camera,
     Landmark
 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { getInvoice, updateInvoice } from "@/lib/db";
+import { toPng } from "html-to-image";
+import { jsPDF } from "jspdf";
 
 export default function InvoicePreview() {
     const params = useParams();
     const router = useRouter();
     const invoiceId = params.invoice_id;
+    const invoiceRef = useRef(null);
 
     const [invoice, setInvoice] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);
+    const [exporting, setExporting] = useState(false);
 
-    useEffect(() => {
-        loadInvoice();
-    }, [invoiceId]);
-
-    const loadInvoice = async () => {
+    const loadInvoice = useCallback(async () => {
         try {
             const invoiceData = await getInvoice(parseInt(invoiceId));
             if (invoiceData) {
@@ -42,7 +41,11 @@ export default function InvoicePreview() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [invoiceId, router]);
+
+    useEffect(() => {
+        loadInvoice();
+    }, [loadInvoice]);
 
     const handleMarkAsPaid = async () => {
         try {
@@ -77,6 +80,105 @@ export default function InvoicePreview() {
         }
     };
 
+    const handleDownloadPNG = async () => {
+        if (!invoiceRef.current || !invoice) return;
+        setExporting(true);
+        try {
+            const dataUrl = await toPng(invoiceRef.current, {
+                cacheBust: true,
+                backgroundColor: '#ffffff',
+                style: {
+                    borderRadius: '0'
+                }
+            });
+            const link = document.createElement('a');
+            link.download = `invoice-${invoice.invoiceNumber || 'preview'}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (err) {
+            console.error('Error generating PNG:', err);
+            alert('Failed to generate PNG');
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        if (!invoiceRef.current || !invoice) return;
+        setExporting(true);
+        try {
+            const dataUrl = await toPng(invoiceRef.current, {
+                cacheBust: true,
+                pixelRatio: 2,
+                backgroundColor: '#ffffff',
+                style: {
+                    borderRadius: '0'
+                }
+            });
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(dataUrl);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`invoice-${invoice.invoiceNumber || 'preview'}.pdf`);
+        } catch (err) {
+            console.error('Error generating PDF:', err);
+            alert('Failed to generate PDF');
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    const handleShare = async () => {
+        if (!invoiceRef.current || !invoice) return;
+        setExporting(true);
+        try {
+            const dataUrl = await toPng(invoiceRef.current, {
+                cacheBust: true,
+                backgroundColor: '#ffffff',
+                style: {
+                    borderRadius: '0'
+                }
+            });
+
+            // Convert dataUrl to File
+            const blob = await (await fetch(dataUrl)).blob();
+            const file = new File([blob], `invoice-${invoice.invoiceNumber || 'preview'}.png`, { type: 'image/png' });
+
+            const shareData = {
+                title: `Invoice ${invoice.invoiceNumber || ''}`,
+                text: `Invoice from ${invoice.businessDetails?.name || 'InstantInvoice'}`,
+                files: [file],
+            };
+
+            if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback: Share link if file sharing is not supported
+                const linkShareData = {
+                    title: `Invoice ${invoice.invoiceNumber || ''}`,
+                    text: `Invoice from ${invoice.businessDetails?.name || 'InstantInvoice'}`,
+                    url: window.location.href,
+                };
+
+                if (navigator.share) {
+                    await navigator.share(linkShareData);
+                } else {
+                    await navigator.clipboard.writeText(window.location.href);
+                    alert("Link copied to clipboard!");
+                }
+            }
+        } catch (err) {
+            console.error("Error sharing:", err);
+            // Non-blocking error if share canceled
+            if (err.name !== 'AbortError') {
+                alert("Failed to share invoice");
+            }
+        } finally {
+            setExporting(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex flex-col h-full w-full bg-[#f8f8f5] items-center justify-center">
@@ -100,12 +202,12 @@ export default function InvoicePreview() {
     return (
         <div className="flex flex-col h-full w-full bg-[#f8f8f5] overflow-hidden">
             {/* Header */}
-            <div className="flex justify-between items-center px-6 py-4 bg-white border-b border-gray-100 flex-shrink-0">
+            <div className="flex justify-between items-center px-6 py-4 bg-white border-b border-gray-100 shrink-0">
                 <Link href="/dashboard" className="p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors">
                     <ArrowLeft className="w-5 h-5 text-gray-900" />
                 </Link>
                 <h1 className="text-lg font-bold text-gray-900">Invoice Preview</h1>
-                <Link href={`/dashboard/preview/${invoiceId}/receipt`} className="text-sm font-bold text-primary hover:text-[#d4d400]">
+                <Link href={`/dashboard/preview/${invoiceId}/receipt`} className="text-sm font-bold text-yellow-500 hover:text-[#d4d400]">
                     Receipt
                 </Link>
             </div>
@@ -113,7 +215,7 @@ export default function InvoicePreview() {
             <div className="flex-1 overflow-y-auto pb-32">
                 <div className="px-6 py-6">
                     {/* Invoice Card */}
-                    <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
+                    <div ref={invoiceRef} className="bg-white rounded-3xl shadow-sm overflow-hidden">
                         {/* Yellow accent bar */}
                         <div className="h-2 bg-primary"></div>
 
@@ -162,7 +264,7 @@ export default function InvoicePreview() {
                             {/* Bill To and Details */}
                             <div className="grid grid-cols-2 gap-6 pt-4">
                                 <div>
-                                    <h3 className="text-xs font-bold text-primary uppercase tracking-wide mb-3">
+                                    <h3 className="text-xs font-bold text-yellow-500 uppercase tracking-wide mb-3">
                                         Bill To
                                     </h3>
                                     <p className="font-bold text-gray-900 mb-1">{invoice.clientName}</p>
@@ -171,7 +273,7 @@ export default function InvoicePreview() {
                                     )}
                                 </div>
                                 <div>
-                                    <h3 className="text-xs font-bold text-primary uppercase tracking-wide mb-3">
+                                    <h3 className="text-xs font-bold text-yellow-500 uppercase tracking-wide mb-3">
                                         Details
                                     </h3>
                                     <div className="space-y-1">
@@ -278,7 +380,7 @@ export default function InvoicePreview() {
                                 </div>
                                 <div className="flex justify-between items-center pt-3 border-t border-gray-200">
                                     <span className="text-lg font-bold text-gray-900">Total Due</span>
-                                    <span className="text-2xl font-bold text-primary">
+                                    <span className="text-2xl font-bold text-yellow-500">
                                         {invoice.currencySymbol || '₦'}{invoice.total?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
                                 </div>
@@ -296,6 +398,13 @@ export default function InvoicePreview() {
                                 </div>
                             )}
                         </div>
+
+                        {/* Branding Footer */}
+                        <div className="mt-8 mb-4 text-center">
+                            <p className="text-[10px] text-gray-400 font-medium">
+                                InstantInvoice by <a href="https://instantcodes.ng/" target="_blank" rel="noopener noreferrer" className=" text-yellow-500 font-bold hover:underline">instantCodes</a>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -304,13 +413,24 @@ export default function InvoicePreview() {
             <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 shadow-2xl">
                 <div className="flex items-center justify-between">
                     <div className="flex gap-3">
-                        <button className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors">
+                        <button
+                            onClick={handleDownloadPNG}
+                            disabled={exporting}
+                            className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50"
+                        >
                             <Download className="w-5 h-5 text-gray-700" />
                         </button>
-                        <button className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors">
+                        <button
+                            onClick={handleShare}
+                            className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors"
+                        >
                             <Share2 className="w-5 h-5 text-gray-700" />
                         </button>
-                        <button className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors">
+                        <button
+                            onClick={handleDownloadPDF}
+                            disabled={exporting}
+                            className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50"
+                        >
                             <Printer className="w-5 h-5 text-gray-700" />
                         </button>
                     </div>

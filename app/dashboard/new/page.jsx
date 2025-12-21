@@ -4,10 +4,8 @@ import React, { useState, useEffect } from "react";
 import {
     ArrowLeft,
     Camera,
-    Search,
     Plus,
     Trash2,
-    MoreVertical,
     Landmark
 } from "lucide-react";
 import Link from "next/link";
@@ -172,7 +170,7 @@ export default function NewInvoice() {
     return (
         <div className="flex flex-col h-full w-full bg-[#f8f8f5] overflow-hidden">
             {/* Header */}
-            <div className="flex justify-between items-center px-6 py-4 bg-white border-b border-gray-100 flex-shrink-0">
+            <div className="flex justify-between items-center px-6 py-6 bg-white border-b border-gray-100 shrink-0">
                 <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">
                     Cancel
                 </Link>
@@ -189,11 +187,11 @@ export default function NewInvoice() {
                         </h2>
                         <div className="flex items-start gap-4 mb-4">
                             {businessDetails?.logo ? (
-                                <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-white border-2 border-gray-100">
+                                <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-white border-2 border-gray-100">
                                     <img src={businessDetails.logo} alt="Logo" className="w-full h-full object-contain" />
                                 </div>
                             ) : (
-                                <div className="w-16 h-16 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <div className="p-1.5 bg-gray-100 rounded-lg group-hover:bg-primary/20 transition-colors shrink-0">
                                     <Camera className="w-6 h-6 text-gray-400" />
                                 </div>
                             )}

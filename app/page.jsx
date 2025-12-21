@@ -47,25 +47,25 @@ export default function Home() {
 
       <div className="flex-1 w-full px-4 pt-4 min-h-0">
         <div className="w-full h-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden rounded-2xl relative" data-alt="Minimalist abstract 3D shapes representing growth and finance in teal and white" style={{ backgroundImage: 'url("./onboarding.png")' }}>
-          <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-background-light dark:to-background-dark opacity-40"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-background-light opacity-40"></div>
         </div>
       </div>
 
       {/* Content Section */}
       <div className="flex flex-col items-center px-6 pt-8 pb-4">
         {/* Headline */}
-        <h1 className="text-[#0d1b1b] dark:text-white tracking-tight text-[32px] font-extrabold leading-[1.2] text-center mb-4">
+        <h1 className="text-[#0d1b1b] tracking-tight text-[32px] font-extrabold leading-[1.2] text-center mb-4">
           Streamline Your Invoicing
         </h1>
         {/* Body Text */}
-        <p className="text-[#0d1b1b]/70 dark:text-white/70 text-base font-medium leading-relaxed text-center px-2">
+        <p className="text-[#0d1b1b]/70 text-base font-medium leading-relaxed text-center px-2">
           Effortless invoicing designed for freelancers &amp; small businesses. Get paid faster and track every penny.
         </p>
         {/* Pagination Indicators */}
         <div className="flex gap-2 mt-8">
           <div className="w-6 h-1.5 rounded-full bg-primary"></div>
-          <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
-          <div className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700"></div>
+          <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+          <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
         </div>
       </div>
       {/* Action Section */}

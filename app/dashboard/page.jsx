@@ -258,7 +258,7 @@ export default function Dashboard() {
                 </div>
             ) : (
 
-                <div className="flex-1 overflow-y-auto pb-24">
+                <div className="flex-1 overflow-y-auto pb-24 pb-safe">
                     {/* Year Selection and Summary Header */}
                     <div className="px-6 py-4 flex justify-between items-center">
                         <h3 className="text-lg font-bold text-gray-900">Performance Summary</h3>
@@ -400,7 +400,7 @@ export default function Dashboard() {
             )}
 
             {/* FAB */}
-            <div className="absolute bottom-8 right-6 z-10">
+            <div className="absolute bottom-8 right-6 z-10 mb-safe">
                 <button className="w-16 h-16 bg-primary rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-105 transition-all active:scale-95" onClick={() => handleNewInvoice()}>
                     <Plus className="w-8 h-8 text-black" strokeWidth={3} />
                 </button>

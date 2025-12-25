@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import {
     ArrowLeft,
     Download,
@@ -212,7 +213,7 @@ export default function InvoicePreview() {
                 </Link>
             </div>
 
-            <div className="flex-1 overflow-y-auto pb-32">
+            <div className="flex-1 overflow-y-auto pb-32 pb-safe">
                 <div className="px-6 py-6">
                     {/* Invoice Card */}
                     <div ref={invoiceRef} className="bg-white rounded-3xl shadow-sm overflow-hidden">
@@ -224,8 +225,14 @@ export default function InvoicePreview() {
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-3">
                                     {invoice.businessDetails?.logo ? (
-                                        <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-sm bg-white border-2 border-gray-100">
-                                            <img src={invoice.businessDetails.logo} alt="Logo" className="w-full h-full object-contain" />
+                                        <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-sm bg-white border-2 border-gray-100 relative">
+                                            <Image
+                                                src={invoice.businessDetails.logo}
+                                                alt="Logo"
+                                                fill
+                                                className="object-contain"
+                                                unoptimized
+                                            />
                                         </div>
                                     ) : (
                                         <div className="w-14 h-14 bg-teal-600 rounded-2xl flex items-center justify-center text-white font-bold text-sm shadow-sm">
@@ -410,7 +417,7 @@ export default function InvoicePreview() {
             </div>
 
             {/* Footer Actions */}
-            <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 shadow-2xl">
+            <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 pb-safe shadow-2xl">
                 <div className="flex items-center justify-between">
                     <div className="flex gap-3">
                         <button

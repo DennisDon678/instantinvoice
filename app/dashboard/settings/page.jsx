@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import {
     ArrowLeft,
     Building2,
@@ -136,18 +137,20 @@ export default function Settings() {
                 </Link>
             </div>
 
-            <div className="flex-1 overflow-y-auto pb-6">
+            <div className="flex-1 overflow-y-auto pb-10 pb-safe">
                 <div className="px-6 py-6 space-y-6">
                     {/* Profile Card */}
                     <div className="bg-white rounded-3xl p-6 shadow-sm">
                         <div className="flex items-center gap-4">
                             <div className="relative shrink-0">
                                 {businessDetails?.logo ? (
-                                    <div className="w-20 h-20 rounded-full overflow-hidden shadow-md bg-white border-2 border-gray-100">
-                                        <img
+                                    <div className="w-20 h-20 rounded-full overflow-hidden shadow-md bg-white border-2 border-gray-100 relative">
+                                        <Image
                                             src={businessDetails.logo}
                                             alt="Business Logo"
-                                            className="w-full h-full object-contain"
+                                            fill
+                                            className="object-contain"
+                                            unoptimized
                                         />
                                     </div>
                                 ) : (

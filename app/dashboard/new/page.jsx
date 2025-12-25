@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import {
     ArrowLeft,
     Camera,
@@ -34,11 +35,7 @@ export default function NewInvoice() {
     const [currency, setCurrency] = useState("NGN");
     const [currencySymbol, setCurrencySymbol] = useState("₦");
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             const [business, savedCurrency, defaultNotes] = await Promise.all([
                 getBusinessDetails(),
@@ -70,7 +67,11 @@ export default function NewInvoice() {
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
 
     const generateInvoiceNumber = () => {
         const now = new Date();
@@ -178,7 +179,7 @@ export default function NewInvoice() {
                 <div className="w-16"></div>
             </div>
 
-            <div className="flex-1 overflow-y-auto pb-32">
+            <div className="flex-1 overflow-y-auto pb-32 pb-safe">
                 <div className="px-6 py-6 space-y-6">
                     {/* Business Details */}
                     <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -187,8 +188,14 @@ export default function NewInvoice() {
                         </h2>
                         <div className="flex items-start gap-4 mb-4">
                             {businessDetails?.logo ? (
-                                <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-white border-2 border-gray-100">
-                                    <img src={businessDetails.logo} alt="Logo" className="w-full h-full object-contain" />
+                                <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-white border-2 border-gray-100 relative">
+                                    <Image
+                                        src={businessDetails.logo}
+                                        alt="Logo"
+                                        fill
+                                        className="object-contain"
+                                        unoptimized
+                                    />
                                 </div>
                             ) : (
                                 <div className="p-1.5 bg-gray-100 rounded-lg group-hover:bg-primary/20 transition-colors shrink-0">
@@ -416,7 +423,7 @@ export default function NewInvoice() {
             </div>
 
             {/* Footer Summary */}
-            <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 shadow-2xl">
+            <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-6 py-4 pb-safe shadow-2xl">
                 <div className="space-y-2 mb-4">
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-500">Subtotal</span>

@@ -1,65 +1,59 @@
 # InstantInvoice 📄
 
-A modern, mobile-first invoice management application built with Next.js. Create, manage, and track invoices with a beautiful, responsive interface optimized for mobile and tablet devices.
+A professional, local-first invoice management application built with Next.js. Create, manage, and track invoices with a beautiful, responsive interface optimized for mobile and tablet devices.
 
-![Next.js](https://img.shields.io/badge/Next.js-14-black)
-![React](https://img.shields.io/badge/React-18-blue)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-38bdf8)
-![License](https://img.shields.io/badge/license-MIT-green)
+![Next.js](https://img.shields.io/badge/Next.js-15-black)
+![React](https://img.shields.io/badge/React-19-blue)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-38bdf8)
+![IndexedDB](https://img.shields.io/badge/Storage-IndexedDB-orange)
 
-## ✨ Features
+## 💡 How it Works
 
-### 📱 Onboarding & Authentication
-- **Welcome Screen** - Engaging onboarding with hero imagery
-- **Business Registration** - Capture business details and logo
-- **Responsive Design** - Optimized for mobile, tablet, and desktop
+InstantInvoice is designed to be a lightweight but powerful tool for small businesses and freelancers. It operates as a **Progressive Web App (PWA)**, meaning all your data stays strictly on your device.
 
-### 📊 Dashboard
-- **Financial Overview** - Horizontally scrollable cards showing:
-  - Paid invoices
-  - Pending invoices
-  - Cancelled invoices
-  - Total revenue with trend indicators
-- **Invoice Management** - Search, filter (All/Pending/Paid/Canceled), and view recent invoices
-- **Quick Actions** - Floating action button for creating new invoices
+1.  **Quick Onboarding**: When you first open the app, you'll set up your business profile (name, email, and location). This information is used to automatically populate your invoices.
+2.  **Effortless Dashboard**: The dashboard provides a high-level view of your financial health. You can switch between years to see past performance and monitor your total revenue, pending payments, and canceled orders.
+3.  **Invoice Lifecycle**:
+    *   **Create**: Add clients and line items with automatic tax and total calculations.
+    *   **Preview**: View professional, print-ready invoices.
+    *   **Management**: Mark invoices as paid to instantly generate a payment receipt.
+4.  **Data Privacy & Safety**: Because the app uses local storage (IndexedDB), you never have to worry about your data being stored on a random server. In the **Data Management** settings, you can monitor your storage usage and even delete entire years of data to keep your app running fast.
 
-### 🧾 Invoice Creation
-- **Business Details** - Company information with logo upload
-- **Client Management** - Searchable client selector
-- **Invoice Metadata** - Invoice number, dates, and currency selection
-- **Dynamic Line Items** - Add/remove items with automatic calculations
-- **Notes & Terms** - Customizable invoice notes
-- **Real-time Totals** - Automatic subtotal, tax, and total calculations
+## 🛠️ Technical Side
 
-### 👁️ Invoice Preview
-- **Professional Layout** - Clean, printable invoice design
-- **Status Badges** - Visual indicators for invoice status
-- **Client Details** - Complete billing information
-- **Itemized Breakdown** - Detailed line items with quantities and amounts
-- **Action Buttons** - Download, share, print, and mark as paid
+InstantInvoice is built using a modern, high-performance stack that prioritizes speed and offline capability.
 
-### 🧾 Payment Receipt
-- **Success Confirmation** - Large checkmark with payment status
-- **Transaction Details** - Date, receipt number, and payment method
-- **Scalloped Design** - Ticket-style perforated edge
-- **Share & Print** - Easy distribution options
+### 🏗️ Architecture
+*   **Framework**: [Next.js 15](https://nextjs.org/) (App Router) for a robust routing system and optimized performance.
+*   **Styling**: [Tailwind CSS 4](https://tailwindcss.com/) for a sleek, responsive design system that feels premium on any screen size.
+*   **Icons**: [Lucide React](https://lucide.dev/) for consistent, lightweight iconography.
 
-### ⚙️ Settings
-- **Business Profile** - Manage company information and contact details
-- **Logo Management** - Upload and manage business logo
-- **Bank Details** - Store payment information for invoices
-- **Currency Selection** - Choose from 10+ currencies with search
-- **Default Notes** - Set default invoice notes with templates
-- **Dark Mode** - Toggle between light and dark themes (UI ready)
+### 💾 Data Persistence (The Local Database)
+The system uses **IndexedDB**, a low-level API for client-side storage of significant amounts of structured data.
+*   **Persistent Storage**: Unlike `localStorage`, IndexedDB can store large amounts of data (like logos and thousands of invoices) persistently.
+*   **Custom DB Utility**: A centralized helper (`lib/db.js`) manages all CRUD operations, ensuring data integrity and simplified access.
+*   **Manual Size Calculation**: Since browser storage estimates can be unreliable on mobile, we implemented a manual scanning algorithm that stringifies and measures data size for 100% accurate reporting in the settings menu.
 
-## 🛠️ Tech Stack
+### ⚡ Performance Optimizations
+*   **Infinite Scrolling**: The dashboard implements a custom `IntersectionObserver` logic to load invoices in batches of 10. This ensures the app remains snappy even with thousands of records.
+*   **Dynamic Filtering**: Statistics and lists are filtered on-the-fly using optimized React `useMemo` and `useCallback` patterns, providing instant feedback when switching years or tabs.
+*   **Asset Management**: Images (like business logos) are stored as Base64 strings directly in the database, eliminating the need for external hosting.
 
-- **Framework:** [Next.js 14](https://nextjs.org/) (App Router)
-- **UI Library:** [React 18](https://react.dev/)
-- **Styling:** [Tailwind CSS](https://tailwindcss.com/)
-- **Icons:** [Lucide React](https://lucide.dev/)
-- **Fonts:** Geist Sans & Geist Mono
-- **Language:** JavaScript (ES6+)
+## ✨ Key Features
+
+### 📊 Dashboard & Analytics
+- **Annual Comparison** - Filter statistics by year to track growth.
+- **Financial Cards** - Horizontally scrollable summary of Paid, Pending, and Canceled totals.
+- **Infinite Scroll** - Seamlessly browse through large invoice histories.
+
+### 🧾 Smart Invoicing
+- **Dynamic Line Items** - Real-time calculation of subtotals and taxes.
+- **Bank Details Integration** - Automatically attach payment info to every invoice.
+- **Status Tracking** - Clear visual badges for Paid, Overdue, and Draft statuses.
+
+### ⚙️ Data Management
+- **Manual Cleanup** - Ability to delete all invoices for a specific year.
+- **Storage Diagnostics** - Real-time monitoring of device storage utilization.
 
 ## 📁 Project Structure
 
@@ -68,152 +62,32 @@ instantInvoice/
 ├── app/
 │   ├── dashboard/
 │   │   ├── new/                    # Create new invoice
-│   │   ├── preview/
-│   │   │   └── [invoice_id]/
-│   │   │       ├── page.jsx        # Invoice preview
-│   │   │       └── receipt/
-│   │   │           └── page.jsx    # Payment receipt
-│   │   ├── settings/
-│   │   │   ├── profile/            # Business profile
-│   │   │   ├── logo/               # Logo management
-│   │   │   ├── bank/               # Bank details
-│   │   │   ├── currency/           # Currency selection
-│   │   │   ├── notes/              # Default notes
-│   │   │   └── page.jsx            # Settings home
-│   │   └── page.jsx                # Dashboard home
-│   ├── onboarding/
-│   │   └── page.jsx                # Business registration
-│   ├── globals.css                 # Global styles & theme
-│   ├── layout.jsx                  # Root layout
-│   └── page.jsx                    # Landing/onboarding screen
-├── public/
-│   └── onboarding.png              # Hero image
-└── README.md
+│   │   ├── preview/[id]/           # Invoice preview & receipt
+│   │   ├── settings/               # Profile, Logo, Bank, Notes, Storage
+│   │   └── page.jsx                # Analytics Dashboard
+│   ├── onboarding/                 # Initial setup flow
+│   ├── globals.css                 # Design system & tokens
+│   └── layout.jsx                  # Root layout
+├── lib/
+│   └── db.js                       # IndexedDB implementation
+└── public/                         # Static assets
 ```
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- Node.js 18+ 
-- npm, yarn, pnpm, or bun
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd instantInvoice
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
-   ```
-
-3. **Run the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
-   ```
-
-4. **Open your browser**
-   Navigate to [http://localhost:3000](http://localhost:3000)
-
-### Build for Production
-
-```bash
-npm run build
-npm start
-```
-
-## 🎨 Design System
-
-### Colors
-- **Primary:** `#f9f506` (Yellow) - Main brand color for CTAs and highlights
-- **Accent:** `#11dcdc` (Teal) - Secondary accent for icons and states
-- **Background:** `#f8f8f5` (Light Gray) - App background
-- **Text:** `#171717` (Dark Gray) - Primary text color
-
-### Typography
-- **Headings:** Geist Sans (Bold)
-- **Body:** Geist Sans (Regular/Medium)
-- **Code:** Geist Mono
-
-### Components
-- **Rounded Corners:** Generous border radius (xl, 2xl, 3xl)
-- **Shadows:** Subtle shadows for depth
-- **Icons:** Lucide React icons throughout
-- **Spacing:** Consistent padding and margins
-
-## 📱 Responsive Design
-
-The application is built with a mobile-first approach:
-- **Mobile:** Full-screen experience with optimized touch targets
-- **Tablet:** Centered layout (max-width: 768px)
-- **Desktop:** Centered tablet view for consistency
-
-## 🔄 Navigation Flow
-
-```
-Landing Page (/)
-    ↓
-Onboarding (/onboarding)
-    ↓
-Dashboard (/dashboard)
-    ├→ New Invoice (/dashboard/new)
-    ├→ Invoice Preview (/dashboard/preview/[id])
-    │   └→ Receipt (/dashboard/preview/[id]/receipt)
-    └→ Settings (/dashboard/settings)
-        ├→ Business Profile (/dashboard/settings/profile)
-        ├→ Logo Management (/dashboard/settings/logo)
-        ├→ Bank Details (/dashboard/settings/bank)
-        ├→ Currency (/dashboard/settings/currency)
-        └→ Default Notes (/dashboard/settings/notes)
-```
-
-## 🎯 Key Features Implementation
-
-### Horizontal Scrolling Cards
-Financial summary cards use `overflow-x-auto` with `snap-x snap-mandatory` for smooth scrolling.
-
-### Dynamic Line Items
-Invoice line items can be added/removed with automatic total calculations using React state.
-
-### Scalloped Receipt Edge
-Payment receipt uses an array of rounded divs to create a ticket-style perforated edge.
-
-### Responsive Forms
-All forms use consistent styling with focus states and proper input validation.
-
-## 📝 Future Enhancements
-
-- [ ] Database integration (Supabase/PostgreSQL)
-- [ ] User authentication
-- [ ] PDF generation and download
-- [ ] Email invoice sending
-- [ ] Client management system
-- [ ] Invoice templates
-- [ ] Multi-currency support with exchange rates
-- [ ] Payment gateway integration
-- [ ] Analytics and reporting
-- [ ] Dark mode implementation
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 👨‍💻 Author
-
-Built with ❤️ using Next.js and Tailwind CSS
+1.  **Clone & Install**
+    ```bash
+    npm install
+    ```
+2.  **Dev Mode**
+    ```bash
+    npm run dev
+    ```
+3.  **Build**
+    ```bash
+    npm run build
+    ```
 
 ---
 
-**InstantInvoice v1.0.2** © 2024 InstantCodes.
+**Built by Antigravity** • Dedicated to Advanced Agentic Coding.

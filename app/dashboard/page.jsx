@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
     Search,
     Plus,
@@ -24,12 +24,14 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [currencySymbol, setCurrencySymbol] = useState("₦");
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+    const [availableYears, setAvailableYears] = useState([new Date().getFullYear().toString()]);
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    // Pagination state for infinite scroll
+    const [visibleCount, setVisibleCount] = useState(10);
+    const observerTarget = useRef(null);
 
-    const loadData = async () => {
+    const loadData = useCallback(async () => {
         try {
             const [invoicesData, businessData, savedCurrency] = await Promise.all([
                 getAllInvoices(),
@@ -46,6 +48,25 @@ export default function Dashboard() {
             setInvoices(invoicesData || []);
             setBusinessDetails(businessData);
 
+            // Extract unique years from invoices
+            if (invoicesData && invoicesData.length > 0) {
+                const years = [...new Set(invoicesData.map(inv => {
+                    const dateStr = inv.issueDate || inv.createdAt;
+                    if (!dateStr) return null;
+                    const date = new Date(dateStr);
+                    return isNaN(date.getTime()) ? null : date.getFullYear().toString();
+                }))].filter(y => y !== null).sort((a, b) => b - a);
+
+                if (years.length > 0) {
+                    setAvailableYears(years);
+                    // If current year not in available years, set to most recent year
+                    const currentYear = new Date().getFullYear().toString();
+                    if (!years.includes(currentYear)) {
+                        setSelectedYear(years[0]);
+                    }
+                }
+            }
+
             // Set currency symbol
             const currencyMap = {
                 'NGN': '₦', 'GHS': '₵', 'USD': '$', 'GBP': '£', 'EUR': '€',
@@ -57,13 +78,44 @@ export default function Dashboard() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [router]);
+
+    useEffect(() => {
+        loadData();
+    }, [loadData]);
+
+    // Filter invoices based on active tab, search query, and selected year
+    const filteredInvoices = invoices.filter(inv => {
+        const dateStr = inv.issueDate || inv.createdAt;
+        if (!dateStr) return false;
+        const date = new Date(dateStr);
+        const invYear = isNaN(date.getTime()) ? "" : date.getFullYear().toString();
+        const matchesYear = invYear === selectedYear;
+
+        const matchesTab = activeTab === "All" ||
+            inv.status?.toUpperCase() === activeTab.toUpperCase() ||
+            (activeTab === "Canceled" && (inv.status === "CANCELLED" || inv.status === "CANCELED"));
+
+        const matchesSearch = !searchQuery ||
+            inv.invoiceNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            inv.clientName?.toLowerCase().includes(searchQuery.toLowerCase());
+
+        return matchesYear && matchesTab && matchesSearch;
+    });
 
     // Calculate financial statistics
     const calculateFinancials = () => {
-        const paid = invoices.filter(inv => inv.status?.toUpperCase() === "PAID");
-        const pending = invoices.filter(inv => inv.status?.toUpperCase() === "PENDING");
-        const cancelled = invoices.filter(inv => {
+        const yearInvoices = invoices.filter(inv => {
+            const dateStr = inv.issueDate || inv.createdAt;
+            if (!dateStr) return false;
+            const date = new Date(dateStr);
+            const invYear = isNaN(date.getTime()) ? "" : date.getFullYear().toString();
+            return invYear === selectedYear;
+        });
+
+        const paid = yearInvoices.filter(inv => inv.status?.toUpperCase() === "PAID");
+        const pending = yearInvoices.filter(inv => inv.status?.toUpperCase() === "PENDING");
+        const cancelled = yearInvoices.filter(inv => {
             const status = inv.status?.toUpperCase();
             return status === "CANCELLED" || status === "CANCELED";
         });
@@ -119,18 +171,33 @@ export default function Dashboard() {
         }
     ];
 
-    // Filter invoices based on active tab and search query
-    const filteredInvoices = invoices.filter(inv => {
-        const matchesTab = activeTab === "All" ||
-            inv.status?.toUpperCase() === activeTab.toUpperCase() ||
-            (activeTab === "Canceled" && (inv.status === "CANCELLED" || inv.status === "CANCELED"));
+    // Reset pagination when year, tab, or search changes
+    useEffect(() => {
+        setVisibleCount(10);
+    }, [selectedYear, activeTab, searchQuery]);
 
-        const matchesSearch = !searchQuery ||
-            inv.invoiceNumber?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            inv.clientName?.toLowerCase().includes(searchQuery.toLowerCase());
+    // Intersection Observer for infinite scroll
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && filteredInvoices.length > visibleCount) {
+                    setVisibleCount(prev => prev + 10);
+                }
+            },
+            { threshold: 0.1 }
+        );
 
-        return matchesTab && matchesSearch;
-    });
+        const currentTarget = observerTarget.current;
+        if (currentTarget) {
+            observer.observe(currentTarget);
+        }
+
+        return () => {
+            if (currentTarget) {
+                observer.unobserve(currentTarget);
+            }
+        };
+    }, [filteredInvoices.length, visibleCount]);
 
     // Get initials from client name
     const getInitials = (name) => {
@@ -192,6 +259,25 @@ export default function Dashboard() {
             ) : (
 
                 <div className="flex-1 overflow-y-auto pb-24">
+                    {/* Year Selection and Summary Header */}
+                    <div className="px-6 py-4 flex justify-between items-center">
+                        <h3 className="text-lg font-bold text-gray-900">Performance Summary</h3>
+                        <div className="relative inline-block">
+                            <select
+                                value={selectedYear}
+                                onChange={(e) => setSelectedYear(e.target.value)}
+                                className="bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/30 shadow-sm appearance-none pr-10"
+                            >
+                                {availableYears.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                <TrendingUp className="w-4 h-4 text-gray-400" />
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Financial Summary Cards - Horizontal Scroll */}
                     <div className="px-6 mb-6">
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
@@ -266,7 +352,7 @@ export default function Dashboard() {
                             </div>
                         ) : (
                             <div className="space-y-3 pb-4">
-                                {filteredInvoices.slice(0, 10).map((inv, index) => (
+                                {filteredInvoices.slice(0, visibleCount).map((inv, index) => (
                                     <div
                                         key={inv.id}
                                         onClick={() => router.push(`/dashboard/preview/${inv.id}`)}
@@ -300,6 +386,13 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                 ))}
+
+                                {/* Scroll Sentinel */}
+                                {filteredInvoices.length > visibleCount && (
+                                    <div ref={observerTarget} className="flex justify-center py-6">
+                                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

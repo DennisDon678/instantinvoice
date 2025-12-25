@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
     ArrowLeft,
     Building2,
@@ -11,21 +11,25 @@ import {
     Moon,
     ChevronRight,
     Pencil,
+    Database,
+    Trash2,
+    TriangleAlert,
 } from "lucide-react";
 import Link from "next/link";
-import { getBusinessDetails, getSetting } from "@/lib/db";
+import { getBusinessDetails, getSetting, getAllInvoices, deleteInvoicesByYear, calculateTotalStorageUsage } from "@/lib/db";
 
 export default function Settings() {
     const [darkMode, setDarkMode] = useState(false);
     const [businessDetails, setBusinessDetails] = useState(null);
     const [loading, setLoading] = useState(true);
     const [currency, setCurrency] = useState('NGN');
+    const [storageUsage, setStorageUsage] = useState({ used: 0, total: 0, percentage: 0 });
+    const [availableYears, setAvailableYears] = useState([]);
+    const [yearToDelete, setYearToDelete] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-    useEffect(() => {
-        loadBusinessData();
-    }, []);
-
-    const loadBusinessData = async () => {
+    const loadBusinessData = useCallback(async () => {
         try {
             const business = await getBusinessDetails();
             setBusinessDetails(business);
@@ -33,10 +37,75 @@ export default function Settings() {
             // Load currency setting
             const savedCurrency = await getSetting('currency');
             setCurrency(savedCurrency || 'NGN'); // Default to Naira
+
+            // Fetch available years from invoices
+            const invoices = await getAllInvoices();
+            const years = [...new Set(invoices.map(inv => {
+                const dateStr = inv.issueDate || inv.createdAt;
+                if (!dateStr) return null;
+                const date = new Date(dateStr);
+                return isNaN(date.getTime()) ? null : date.getFullYear().toString();
+            }))].filter(y => y !== null).sort((a, b) => b - a);
+            setAvailableYears(years);
+
+            // Set initial year to delete if not set
+            if (years.length > 0) {
+                setYearToDelete(prev => prev || years[0]);
+            }
+
+            // Get storage estimation
+            let used = 0;
+            let total = 0;
+
+            // Manual calculation for used space (reliable on mobile)
+            used = await calculateTotalStorageUsage();
+
+            // Total quota from browser if available
+            if (navigator.storage && navigator.storage.estimate) {
+                const estimate = await navigator.storage.estimate();
+                total = estimate.quota || 1024 * 1024 * 50; // Fallback to 50MB if quota missing
+            } else {
+                total = 1024 * 1024 * 50; // Fallback to 50MB
+            }
+
+            setStorageUsage({
+                used,
+                total,
+                percentage: total > 0 ? (used / total) * 100 : 0
+            });
         } catch (error) {
             console.error("Error loading business data:", error);
         } finally {
             setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadBusinessData();
+    }, [loadBusinessData]);
+
+    const formatBytes = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const handleDeleteYear = async () => {
+        if (!yearToDelete) return;
+
+        try {
+            setIsDeleting(true);
+            const count = await deleteInvoicesByYear(yearToDelete);
+            alert(`Successfully deleted ${count} invoices from ${yearToDelete}`);
+            setShowDeleteConfirm(false);
+            loadBusinessData(); // Refresh years and storage info
+        } catch (error) {
+            console.error("Error deleting invoices:", error);
+            alert("Failed to delete invoices. Please try again.");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -160,25 +229,73 @@ export default function Settings() {
                         </div>
                     </div>
 
-                    {/* System Section */}
+                    {/* Data Management Section */}
                     <div>
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3 px-2">
-                            System
+                            Data Management
                         </h3>
-                        <div className="bg-white rounded-3xl shadow-sm overflow-hidden">
-                            <div className="flex items-center gap-4 p-5">
-                                <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center shrink-0">
-                                    <Moon className="w-6 h-6 text-gray-700" />
+                        <div className="bg-white rounded-3xl shadow-sm overflow-hidden divide-y divide-gray-100">
+                            {/* Storage Info */}
+                            <div className="p-6">
+                                <div className="flex items-center gap-4 mb-4">
+                                    <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center shrink-0">
+                                        <Database className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="font-semibold text-gray-900">Storage Usage</span>
+                                            <span className="text-xs font-bold text-gray-500">{formatBytes(storageUsage.used)} / {formatBytes(storageUsage.total)}</span>
+                                        </div>
+                                        <p className="text-xs text-gray-400">Total space used by your business data</p>
+                                    </div>
                                 </div>
-                                <span className="flex-1 font-semibold text-gray-900">Dark Mode</span>
-                                <button
-                                    onClick={() => setDarkMode(!darkMode)}
-                                    className={`relative w-14 h-8 rounded-full transition-colors ${darkMode ? 'bg-primary' : 'bg-gray-200'}`}
-                                >
+                                <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden mb-2">
                                     <div
-                                        className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-md transition-transform ${darkMode ? 'translate-x-7' : 'translate-x-1'}`}
-                                    />
-                                </button>
+                                        className="bg-blue-600 h-full transition-all duration-500 ease-out"
+                                        style={{ width: `${Math.max(storageUsage.percentage, 1)}%` }}
+                                    ></div>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">IndexedDB Capacity</span>
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{storageUsage.percentage.toFixed(4)}% utilized</span>
+                                </div>
+                            </div>
+
+                            {/* Annual Cleanup */}
+                            <div className="p-6">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center shrink-0">
+                                        <Trash2 className="w-6 h-6 text-red-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-semibold text-gray-900">Annual Cleanup</h4>
+                                        <p className="text-xs text-gray-400 mt-0.5">Quickly remove all data for a specific year</p>
+                                    </div>
+                                </div>
+
+                                {availableYears.length > 0 ? (
+                                    <div className="flex gap-3">
+                                        <select
+                                            value={yearToDelete}
+                                            onChange={(e) => setYearToDelete(e.target.value)}
+                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                                        >
+                                            {availableYears.map(year => (
+                                                <option key={year} value={year}>{year} Invoices</option>
+                                            ))}
+                                        </select>
+                                        <button
+                                            onClick={() => setShowDeleteConfirm(true)}
+                                            className="px-6 py-3 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition-colors shadow-sm active:scale-95"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="bg-gray-50 rounded-xl p-4 text-center">
+                                        <p className="text-xs font-medium text-gray-500 italic">No invoice history found to cleanup</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -190,6 +307,45 @@ export default function Settings() {
                     </div>
                 </div>
             </div>
+
+            {/* Custom Modal for Deletion Confirmation */}
+            {showDeleteConfirm && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center px-6">
+                    <div
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        onClick={() => !isDeleting && setShowDeleteConfirm(false)}
+                    />
+                    <div className="relative bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+                        <div className="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+                            <TriangleAlert className="w-8 h-8 text-red-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 text-center mb-2">Delete {yearToDelete} Invoices?</h3>
+                        <p className="text-sm text-gray-500 text-center mb-8 leading-relaxed">
+                            This action is permanent and will remove every invoice record created in <span className="font-bold text-gray-900">{yearToDelete}</span>. This cannot be undone.
+                        </p>
+                        <div className="space-y-3">
+                            <button
+                                onClick={handleDeleteYear}
+                                disabled={isDeleting}
+                                className="w-full py-4 bg-red-600 text-white rounded-2xl font-bold text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                                {isDeleting ? (
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                    <>Yes, Delete All</>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                disabled={isDeleting}
+                                className="w-full py-4 bg-gray-100 text-gray-900 rounded-2xl font-bold text-sm hover:bg-gray-200 transition-colors disabled:opacity-50"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

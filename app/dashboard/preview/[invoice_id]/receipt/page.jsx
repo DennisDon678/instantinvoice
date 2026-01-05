@@ -280,7 +280,7 @@ export default function PaymentReceipt() {
                                     {invoice.items?.map((item, index) => (
                                         <div key={index} className="flex justify-between text-sm">
                                             <span className="text-gray-600">
-                                                {item.description} × {item.qty}
+                                                {item.description} ({invoice.currencySymbol}{item.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} × {item.qty})
                                             </span>
                                             <span className="font-medium text-gray-900">
                                                 {invoice.currencySymbol}{(item.qty * item.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}

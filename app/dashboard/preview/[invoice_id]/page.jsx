@@ -331,7 +331,7 @@ export default function InvoicePreview() {
                             {/* Line Items */}
                             <div className="pt-4">
                                 <div className="col-span-12 grid grid-cols-12 gap-2 pb-3 border-b border-gray-200">
-                                    <div className="col-span-5">
+                                    <div className="col-span-4">
                                         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
                                             Description
                                         </h3>
@@ -341,7 +341,7 @@ export default function InvoicePreview() {
                                             QTY
                                         </h3>
                                     </div>
-                                    <div className="col-span-2 text-right">
+                                    <div className="col-span-3 text-right">
                                         <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
                                             Unit
                                         </h3>
@@ -356,7 +356,7 @@ export default function InvoicePreview() {
                                 <div className="space-y-4 py-4">
                                     {invoice.items?.map((item, index) => (
                                         <div key={index} className="grid grid-cols-12 gap-2 py-1">
-                                            <div className="col-span-5">
+                                            <div className="col-span-4">
                                                 <p className="font-bold text-gray-900 text-sm">
                                                     {item.description}
                                                 </p>
@@ -366,7 +366,7 @@ export default function InvoicePreview() {
                                                     {item.qty}
                                                 </p>
                                             </div>
-                                            <div className="col-span-2 text-right">
+                                            <div className="col-span-3 text-right">
                                                 <p className="font-medium text-gray-900 text-sm">
                                                     {invoice.currencySymbol || '₦'}{item.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>

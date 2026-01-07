@@ -10,11 +10,12 @@ import {
     XCircle,
     DollarSign,
     TrendingUp,
-    Settings
+    Settings,
+    Trash2
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getAllInvoices, getBusinessDetails, getSetting } from "@/lib/db";
+import { getAllInvoices, getBusinessDetails, getSetting, deleteInvoice } from "@/lib/db";
 
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState("All");
@@ -26,6 +27,8 @@ export default function Dashboard() {
     const [currencySymbol, setCurrencySymbol] = useState("₦");
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
     const [availableYears, setAvailableYears] = useState([new Date().getFullYear().toString()]);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [invoiceToDelete, setInvoiceToDelete] = useState(null);
 
     // Pagination state for infinite scroll
     const [visibleCount, setVisibleCount] = useState(10);
@@ -235,6 +238,32 @@ export default function Dashboard() {
         router.push('/dashboard/new');
     };
 
+    const handleDeleteClick = (e, invoice) => {
+        e.stopPropagation(); // Prevent navigation to invoice preview
+        setInvoiceToDelete(invoice);
+        setDeleteModalOpen(true);
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteModalOpen(false);
+        setInvoiceToDelete(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!invoiceToDelete) return;
+
+        try {
+            await deleteInvoice(invoiceToDelete.id);
+            setDeleteModalOpen(false);
+            setInvoiceToDelete(null);
+            // Reload data to reflect deletion
+            await loadData();
+        } catch (error) {
+            console.error("Error deleting invoice:", error);
+            alert("Failed to delete invoice");
+        }
+    };
+
     return (
         <div className="flex flex-col h-full w-full bg-[#f8f8f5] overflow-hidden">
             {/* Header */}
@@ -360,10 +389,12 @@ export default function Dashboard() {
                                 {filteredInvoices.slice(0, visibleCount).map((inv, index) => (
                                     <div
                                         key={inv.id}
-                                        onClick={() => router.push(`/dashboard/preview/${inv.id}`)}
-                                        className="bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer"
+                                        className="bg-white rounded-2xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all"
                                     >
-                                        <div className="flex items-center gap-4">
+                                        <div
+                                            className="flex items-center gap-4 flex-1 cursor-pointer"
+                                            onClick={() => router.push(`/dashboard/preview/${inv.id}`)}
+                                        >
                                             <div className={`w-12 h-12 ${getAvatarColor(index)} rounded-full flex items-center justify-center text-white font-bold text-base shadow-sm`}>
                                                 {getInitials(inv.clientName)}
                                             </div>
@@ -376,18 +407,27 @@ export default function Dashboard() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col items-end gap-1.5">
-                                            <span className="font-bold text-gray-900 text-base">
-                                                {inv.currencySymbol || currencySymbol}{(inv.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </span>
-                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide 
-                                            ${inv.status === 'PAID' ? 'bg-primary/30 text-gray-900' : ''}
-                                            ${inv.status === 'PENDING' ? 'bg-blue-50 text-blue-700' : ''}
-                                            ${inv.status === 'OVERDUE' ? 'bg-red-50 text-red-600' : ''}
-                                            ${(inv.status === 'CANCELLED' || inv.status === 'CANCELED') ? 'bg-gray-100 text-gray-600' : ''}
-                                        `}>
-                                                {inv.status || 'DRAFT'}
-                                            </span>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex flex-col items-end gap-1.5">
+                                                <span className="font-bold text-gray-900 text-base">
+                                                    {inv.currencySymbol || currencySymbol}{(inv.total || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                </span>
+                                                <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wide 
+                                                ${inv.status === 'PAID' ? 'bg-primary/30 text-gray-900' : ''}
+                                                ${inv.status === 'PENDING' ? 'bg-blue-50 text-blue-700' : ''}
+                                                ${inv.status === 'OVERDUE' ? 'bg-red-50 text-red-600' : ''}
+                                                ${(inv.status === 'CANCELLED' || inv.status === 'CANCELED') ? 'bg-gray-100 text-gray-600' : ''}
+                                            `}>
+                                                    {inv.status || 'DRAFT'}
+                                                </span>
+                                            </div>
+                                            <button
+                                                onClick={(e) => handleDeleteClick(e, inv)}
+                                                className="w-10 h-10 rounded-xl bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors"
+                                                aria-label="Delete invoice"
+                                            >
+                                                <Trash2 className="w-4 h-4 text-red-600" />
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -410,6 +450,37 @@ export default function Dashboard() {
                     <Plus className="w-8 h-8 text-black" strokeWidth={3} />
                 </button>
             </div>
+
+            {/* Delete Confirmation Modal */}
+            {deleteModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
+                    <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl">
+                        <div className="flex items-center justify-center w-14 h-14 bg-red-50 rounded-2xl mb-4 mx-auto">
+                            <Trash2 className="w-7 h-7 text-red-600" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
+                            Delete Invoice?
+                        </h3>
+                        <p className="text-sm text-gray-500 text-center mb-6">
+                            Are you sure you want to delete invoice <span className="font-bold text-gray-900">{invoiceToDelete?.invoiceNumber}</span> for <span className="font-bold text-gray-900">{invoiceToDelete?.clientName}</span>? This action cannot be undone.
+                        </p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleCancelDelete}
+                                className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 rounded-xl font-bold text-sm text-gray-700 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleConfirmDelete}
+                                className="flex-1 py-3 px-4 bg-red-600 hover:bg-red-700 rounded-xl font-bold text-sm text-white transition-colors"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

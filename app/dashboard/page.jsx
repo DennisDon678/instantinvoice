@@ -101,6 +101,11 @@ export default function Dashboard() {
             inv.clientName?.toLowerCase().includes(searchQuery.toLowerCase());
 
         return matchesYear && matchesTab && matchesSearch;
+    }).sort((a, b) => {
+        // Sort by date (newest first)
+        const dateA = new Date(a.issueDate || a.createdAt);
+        const dateB = new Date(b.issueDate || b.createdAt);
+        return dateB - dateA; // Descending order (newest first)
     });
 
     // Calculate financial statistics

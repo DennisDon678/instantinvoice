@@ -330,24 +330,24 @@ export default function InvoicePreview() {
 
                             {/* Line Items */}
                             <div className="pt-4">
-                                <div className="col-span-12 grid grid-cols-12 gap-2 pb-3 border-b border-gray-200">
+                                <div className="col-span-12 grid grid-cols-12 gap-1 sm:gap-2 pb-3 border-b border-gray-200">
                                     <div className="col-span-4">
-                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wide">
                                             Description
                                         </h3>
                                     </div>
                                     <div className="col-span-2 text-center">
-                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wide">
                                             QTY
                                         </h3>
                                     </div>
                                     <div className="col-span-3 text-right">
-                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wide">
                                             Unit
                                         </h3>
                                     </div>
                                     <div className="col-span-3 text-right">
-                                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                                        <h3 className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wide">
                                             Amount
                                         </h3>
                                     </div>
@@ -355,24 +355,24 @@ export default function InvoicePreview() {
 
                                 <div className="space-y-4 py-4">
                                     {invoice.items?.map((item, index) => (
-                                        <div key={index} className="grid grid-cols-12 gap-2 py-1">
+                                        <div key={index} className="grid grid-cols-12 gap-1 sm:gap-2 py-1">
                                             <div className="col-span-4">
-                                                <p className="font-bold text-gray-900 text-sm">
+                                                <p className="font-bold text-gray-900 text-xs sm:text-sm break-words">
                                                     {item.description}
                                                 </p>
                                             </div>
                                             <div className="col-span-2 text-center">
-                                                <p className="font-medium text-gray-900 text-sm">
+                                                <p className="font-medium text-gray-900 text-xs sm:text-sm">
                                                     {item.qty}
                                                 </p>
                                             </div>
                                             <div className="col-span-3 text-right">
-                                                <p className="font-medium text-gray-900 text-sm">
+                                                <p className="font-medium text-gray-900 text-[10px] sm:text-sm break-all">
                                                     {invoice.currencySymbol || '₦'}{item.price?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>
                                             </div>
                                             <div className="col-span-3 text-right">
-                                                <p className="font-bold text-gray-900 text-sm">
+                                                <p className="font-bold text-gray-900 text-[10px] sm:text-sm break-all">
                                                     {invoice.currencySymbol || '₦'}{(item.qty * item.price).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                 </p>
                                             </div>

@@ -299,7 +299,7 @@ export default function PaymentReceipt() {
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">VAT (7.5%)</span>
+                                    <span className="text-gray-500">VAT ({invoice.taxRate}%)</span>
                                     <span className="font-medium text-gray-900">
                                         {invoice.currencySymbol}{invoice.tax?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>

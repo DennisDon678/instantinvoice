@@ -216,11 +216,11 @@ export default function InvoicePreview() {
             <div className="flex-1 overflow-y-auto pb-32 pb-safe">
                 <div className="px-6 py-6">
                     {/* Invoice Card */}
-                    <div ref={invoiceRef} className="bg-white rounded-3xl shadow-sm overflow-hidden">
+                    <div ref={invoiceRef} className="bg-white rounded-3xl shadow-sm overflow-hidden mb-24">
                         {/* Yellow accent bar */}
                         <div className="h-2 bg-primary"></div>
 
-                        <div className="p-6 space-y-6">
+                        <div className="p-6 space-y-6 ">
                             {/* Header with Logo and Status */}
                             <div className="flex justify-between items-start">
                                 <div className="flex items-center gap-3">
@@ -269,7 +269,7 @@ export default function InvoicePreview() {
                             </div>
 
                             {/* Bill To and Details */}
-                            <div className="grid grid-cols-2 gap-6 pt-4">
+                            <div className="grid grid-cols-2 gap-6 pt-4 ">
                                 <div>
                                     <h3 className="text-xs font-bold text-yellow-500 uppercase tracking-wide mb-3">
                                         Bill To
@@ -390,7 +390,7 @@ export default function InvoicePreview() {
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">VAT (7.5%)</span>
+                                    <span className="text-gray-500">VAT ({invoice.taxRate}%)</span>
                                     <span className="font-medium text-gray-900">
                                         {invoice.currencySymbol || '₦'}{invoice.tax?.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </span>
@@ -417,7 +417,7 @@ export default function InvoicePreview() {
                         </div>
 
                         {/* Branding Footer */}
-                        <div className="mt-8 mb-4 text-center">
+                        <div className="mt-8 mb-4 text-center ">
                             <p className="text-[10px] text-gray-400 font-medium">
                                 InstantInvoice by <a href="https://instantcodes.ng/" target="_blank" rel="noopener noreferrer" className=" text-yellow-500 font-bold hover:underline">instantCodes</a>
                             </p>

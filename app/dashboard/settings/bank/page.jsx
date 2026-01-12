@@ -122,7 +122,7 @@ export default function BankDetails() {
                                 type="text"
                                 value={formData.bankName}
                                 onChange={(e) => handleInputChange('bankName', e.target.value)}
-                                placeholder="e.g. Chase Bank, Bank of America"
+                                placeholder="e.g. First Bank, Zenith Bank"
                                 className="w-full bg-gray-50 rounded-xl py-4 pl-12 pr-4 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
                             />
                         </div>
@@ -145,16 +145,7 @@ export default function BankDetails() {
                             />
                         </div>
 
-                        <div className="relative">
-                            <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="text"
-                                value={formData.routingNumber}
-                                onChange={(e) => handleInputChange('routingNumber', e.target.value)}
-                                placeholder="Routing Number (Optional)"
-                                className="w-full bg-gray-50 rounded-xl py-4 pl-12 pr-4 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
-                            />
-                        </div>
+
 
                         <div className="relative">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -173,6 +164,14 @@ export default function BankDetails() {
                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide">
                             International Details (Optional)
                         </h3>
+
+                        <input
+                            type="text"
+                            value={formData.routingNumber}
+                            onChange={(e) => handleInputChange('routingNumber', e.target.value)}
+                            placeholder="Routing Number"
+                            className="w-full bg-gray-50 rounded-xl py-4 px-4 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
 
                         <input
                             type="text"

@@ -25,7 +25,7 @@ export default function NewInvoice() {
     const [clientName, setClientName] = useState("");
     const [clientEmail, setClientEmail] = useState("");
     const [notes, setNotes] = useState("");
-    const [taxRate, setTaxRate] = useState(7.5); // Default 7.5% VAT
+    const [taxRate, setTaxRate] = useState(7.5);
     const [lineItems, setLineItems] = useState([
         { id: Date.now(), description: "", qty: 1, price: 0 }
     ]);
@@ -136,10 +136,16 @@ export default function NewInvoice() {
                 dueDate,
                 clientName,
                 clientEmail,
-                items: lineItems.filter(item => item.description.trim()),
+                items: lineItems
+                    .filter(item => item.description.trim())
+                    .map(item => ({
+                        ...item,
+                        qty: Number(item.qty) || 0,
+                        price: Number(item.price) || 0
+                    })),
                 subtotal: calculateSubtotal(),
                 tax: calculateTax(),
-                taxRate,
+                taxRate: Number(taxRate) || 0,
                 total: calculateTotal(),
                 currency,
                 currencySymbol,
@@ -353,7 +359,7 @@ export default function NewInvoice() {
                                             <input
                                                 type="number"
                                                 value={item.qty}
-                                                onChange={(e) => updateLineItem(item.id, 'qty', parseInt(e.target.value) || 0)}
+                                                onChange={(e) => updateLineItem(item.id, 'qty', e.target.value)}
                                                 className="w-full text-sm font-medium text-gray-900 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30"
                                             />
                                         </div>
@@ -362,7 +368,7 @@ export default function NewInvoice() {
                                             <input
                                                 type="number"
                                                 value={item.price}
-                                                onChange={(e) => updateLineItem(item.id, 'price', parseFloat(e.target.value) || 0)}
+                                                onChange={(e) => updateLineItem(item.id, 'price', e.target.value)}
                                                 className="w-full text-sm font-medium text-gray-900 bg-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30"
                                             />
                                         </div>
@@ -396,7 +402,7 @@ export default function NewInvoice() {
                             <input
                                 type="number"
                                 value={taxRate}
-                                onChange={(e) => setTaxRate(parseFloat(e.target.value) || 0)}
+                                onChange={(e) => setTaxRate(e.target.value)}
                                 min="0"
                                 max="100"
                                 step="0.1"
@@ -407,7 +413,7 @@ export default function NewInvoice() {
                     </div>
 
                     {/* Notes & Terms */}
-                    <div className="bg-white rounded-2xl p-5 shadow-sm">
+                    <div className="bg-white rounded-2xl p-5 shadow-sm mb-48">
                         <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">
                             Notes & Terms
                         </h2>

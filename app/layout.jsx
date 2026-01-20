@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import {GoogleAnalytics} from "@next/third-parties/google"
 import "./globals.css";
 
 const geistSans = Geist({
@@ -45,6 +46,7 @@ import PWARegistration from "@/components/PWARegistration";
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <GoogleAnalytics gaId="G-TVMMGQ96DT"/>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-100 flex justify-center h-dvh w-full overflow-hidden`}
       >

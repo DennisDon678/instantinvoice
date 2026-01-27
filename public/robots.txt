@@ -1,0 +1,11 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard/preview/
+
+# Host
+Host: https://instantinvoice.ng
+
+# Sitemaps
+Sitemap: https://instantinvoice.ng/sitemap.xml

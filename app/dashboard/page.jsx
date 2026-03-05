@@ -16,6 +16,7 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAllInvoices, getBusinessDetails, getSetting, deleteInvoice } from "@/lib/db";
+import BusinessSwitcher from "@/components/BusinessSwitcher";
 
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState("All");
@@ -268,14 +269,7 @@ export default function Dashboard() {
         <div className="flex flex-col h-full w-full bg-[#f8f8f5] overflow-hidden">
             {/* Header */}
             <div className="flex justify-between items-center px-6 py-6 border-b border-gray-100 shrink-0">
-                <div className="flex items-center gap-2">
-                    <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
-                        <FileText className="w-6 h-6 text-black" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-xl font-bold text-gray-900">
-                        {"InstantInvoice"}
-                    </span>
-                </div>
+                <BusinessSwitcher />
                 <Link href="/dashboard/settings">
                     <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-200 to-orange-300 flex items-center justify-center text-orange-700 font-bold text-sm shadow-sm">
                         <Settings />
